@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Airsell — The smarter way to buy your first aircraft."/>
+  <title>Airsell — General Aviation Marketplace</title>
+  <style>* { box-sizing: border-box; } body { margin: 0; padding: 0; background: #0A0A09; }</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel" data-presets="react">
+import { useState, useEffect, useRef } from "react";
+
+const PHOTO_KEY = "airsell_photos_n5843u";
+
+/* ─── COLORS ─── */
+const C = {
+  gold: "#C8A96E", dark: "#141412", darker: "#0A0A09", card: "#131311",
+  border: "rgba(200,169,110,0.14)", borderFaint: "rgba(255,255,255,0.07)",
+  white: "#F0EDE8", offwhite: "#C4BFB8", mid: "#88887F", dim: "#55554E",
+};
+
+/* ─── DATA ─── */
+const SPECS = [
+  ["Registration","N5843U"],["Serial Number","28-26674"],["Year","1970"],
+  ["Make / Model","Piper PA-28-140C Cherokee"],["Total Time Airframe","5,350.2 hrs"],
+  ["Engine SMOH","1,230.02 hrs"],["Engine","Avco Lycoming O-320"],
+  ["Annual Completed","June 25, 2025"],["Annual Due","June 30, 2026"],
+  ["Paint","White / Maroon"],["Seats","4"],["Location","Punta Gorda, FL"],
+];
+const AVIONICS = [
+  {name:"Garmin GNS 430",note:"COM 1 / GPS — Non-WAAS"},
+  {name:"Bendix/King KX 125",note:"COM 2"},
+  {name:"Garmin GTX 327",note:"Transponder"},
+  {name:"uAvionix tailBeacon",note:"ADS-B Out — FAA Compliant"},
+  {name:"TELEX PC 4",note:"Audio Panel"},
+  {name:"LED Beacon",note:"New Installation"},
+  {name:"LED Position Lights",note:"New Installation"},
+  {name:"LED Landing Light",note:"New Installation"},
+  {name:"Red Interior Lighting",note:"Night Vision Friendly"},
+];
+const OWNERSHIP = [
+  {label:"Est. Monthly Fixed",value:"$680/mo",sub:"hangar + insurance + annual reserve"},
+  {label:"Est. Wet Rate",value:"$85/hr",sub:"fuel + oil at current prices"},
+  {label:"vs. Rental Savings",value:"~$55/hr",sub:"vs. $140/hr Cherokee rental avg."},
+  {label:"Break-Even",value:"~75 hrs/yr",sub:"ownership cheaper beyond this point"},
+];
+const INSPECTORS = [
+  {name:"James Wu",cert:"A&P / IA",location:"KPGD — Punta Gorda, FL",rating:5.0,reviews:134,lead:"24–48 hrs",price:925,badge:"Top Rated"},
+  {name:"Patricia Osei",cert:"A&P / IA",location:"KORL — Orlando, FL",rating:4.7,reviews:45,lead:"48–72 hrs",price:875,badge:"Verified"},
+];
+
+/* ─── LOGO ─── */
+function Logo({width=150, color="white", textColor="white"}) {
+  // Viewbox: 220 wide x 56 tall — icon (56x56) + text
+  // The "A": bold geometric, wide base, pointed apex, crossbar implied by aircraft slash
+  // Two aircraft cross diagonally through the A — upper-right direction + lower-left direction
+  const a = color; // letter color
+  const p = color === "white" ? "rgba(255,255,255,0.72)" : "rgba(0,0,0,0.55)"; // aircraft color (slightly dimmer)
+  return (
+    <svg width={width} height={Math.round(width * 56/220)} viewBox="0 0 220 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* ── THE A ── bold geometric, wide serif-style */}
+      {/* Left leg */}
+      <polygon points="4,52 16,52 28,6 20,6" fill={a}/>
+      {/* Right leg */}
+      <polygon points="52,52 40,52 28,6 36,6" fill={a}/>
+      {/* Left crossbar fill (below slash) */}
+      <polygon points="13,38 20,38 24,26 17,26" fill={a}/>
+      {/* Right crossbar fill (above slash) */}
+      <polygon points="38,26 43,26 39,38 32,38" fill={a}/>
+
+      {/* ── AIRCRAFT 1 — crosses upper-left to upper-right, angled ~−22deg ── */}
+      {/* Fuselage */}
+      <g transform="rotate(-22, 28, 22)">
+        {/* Body */}
+        <rect x="8" y="20.5" width="40" height="3" rx="1.5" fill={p}/>
+        {/* Nose cone */}
+        <polygon points="48,20.5 56,22 48,23.5" fill={p}/>
+        {/* Swept wings */}
+        <polygon points="26,21 36,21 32,14 24,18" fill={p}/>
+        <polygon points="26,23 36,23 32,30 24,26" fill={p}/>
+        {/* Tail fin vertical */}
+        <polygon points="12,21.5 12,20 8,16 8,21.5" fill={p}/>
+        {/* Tail stabilizers */}
+        <polygon points="10,21 18,21 16,17 10,19" fill={p}/>
+        <polygon points="10,23 18,23 16,27 10,25" fill={p}/>
+      </g>
+
+      {/* ── AIRCRAFT 2 — crosses lower-right to lower-left, angled ~+18deg, offset down ── */}
+      <g transform="rotate(18, 28, 36)">
+        {/* Body */}
+        <rect x="6" y="34.5" width="36" height="2.5" rx="1.2" fill={p} opacity="0.85"/>
+        {/* Nose */}
+        <polygon points="42,34.5 49,35.7 42,37" fill={p} opacity="0.85"/>
+        {/* Wings */}
+        <polygon points="23,35 31,35 28,29 22,32" fill={p} opacity="0.85"/>
+        <polygon points="23,36.5 31,36.5 28,42 22,39" fill={p} opacity="0.85"/>
+        {/* Tail fin */}
+        <polygon points="9,35 9,33.5 6,30 6,35" fill={p} opacity="0.85"/>
+        {/* Tail stabs */}
+        <polygon points="8,34.5 15,34.5 13,31 8,33" fill={p} opacity="0.85"/>
+        <polygon points="8,36 15,36 13,39.5 8,37.5" fill={p} opacity="0.85"/>
+      </g>
+
+      {/* ── AIRSELL TEXT ── wide-tracked condensed caps */}
+      <text
+        x="68" y="40"
+        fontFamily="'Barlow Condensed', 'Arial Narrow', Impact, sans-serif"
+        fontSize="26"
+        fontWeight="500"
+        fill={textColor}
+        letterSpacing="5"
+      >AIRSELL</text>
+    </svg>
+  );
+}
+
+/* ─── SHARED BUTTONS ─── */
+const Btn = ({children, onClick, style={}, variant="gold", full=false, disabled=false}) => {
+  const base = {
+    border:"none", borderRadius:"2px", cursor: disabled ? "not-allowed" : "pointer",
+    fontFamily:"'Barlow Condensed',sans-serif", fontSize:"0.82rem", fontWeight:700,
+    letterSpacing:"0.1em", textTransform:"uppercase", transition:"opacity 0.15s",
+    width: full ? "100%" : undefined, opacity: disabled ? 0.5 : 1,
+    padding:"0.6rem 1.25rem",
+  };
+  const variants = {
+    gold: {background:C.gold, color:C.darker},
+    outline: {background:"transparent", color:C.white, border:`1px solid rgba(255,255,255,0.15)`},
+    goldOutline: {background:"transparent", color:C.gold, border:`1px solid ${C.gold}50`},
+    danger: {background:"transparent", color:"#C87E7E", border:"1px solid rgba(200,126,126,0.25)"},
+    ghost: {background:"transparent", color:C.mid, border:`1px solid ${C.borderFaint}`},
+  };
+  return <button style={{...base,...variants[variant],...style}} onClick={onClick} disabled={disabled}>{children}</button>;
+};
+
+/* ═══════════════════════════════════════════
+   MAIN APP
+═══════════════════════════════════════════ */
+export default function App() {
+  const [page, setPage] = useState("listing"); // listing | manage
+  const [photos, setPhotos] = useState([]);
+  const [photosLoaded, setPhotosLoaded] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  useEffect(() => { loadPhotos(); }, []);
+
+  async function loadPhotos() {
+    try {
+      const res = await window.storage.get(PHOTO_KEY);
+      if (res?.value) setPhotos(JSON.parse(res.value));
+    } catch {}
+    setPhotosLoaded(true);
+  }
+
+  async function savePhotos(updated) {
+    setPhotos(updated);
+    try { await window.storage.set(PHOTO_KEY, JSON.stringify(updated)); }
+    catch { notify("Storage error.", "error"); }
+  }
+
+  function notify(msg, type="success") {
+    setNotification({msg, type});
+    setTimeout(() => setNotification(null), 3500);
+  }
+
+  return (
+    <div style={{minHeight:"100vh", background:C.darker, color:C.white, fontFamily:"'Barlow','Helvetica Neue',sans-serif"}}>
+      <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+      {/* NAV */}
+      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:200,background:"rgba(10,10,9,0.97)",backdropFilter:"blur(20px)",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 2rem",height:"58px"}}>
+        <Logo width={130}/>
+        <div style={{display:"flex",alignItems:"center",gap:"0.75rem"}}>
+          <button style={{background:"none",border:"none",color:page==="listing"?C.gold:C.mid,fontSize:"0.78rem",letterSpacing:"0.08em",textTransform:"uppercase",cursor:"pointer",borderBottom:page==="listing"?`1px solid ${C.gold}`:"1px solid transparent",paddingBottom:"2px"}} onClick={()=>setPage("listing")}>Listing</button>
+          <button style={{background:"none",border:"none",color:page==="manage"?C.gold:C.mid,fontSize:"0.78rem",letterSpacing:"0.08em",textTransform:"uppercase",cursor:"pointer",borderBottom:page==="manage"?`1px solid ${C.gold}`:"1px solid transparent",paddingBottom:"2px"}} onClick={()=>setPage("manage")}>
+            Manage Photos {photos.length > 0 && <span style={{color:C.gold,fontSize:"0.68rem"}}>({photos.length})</span>}
+          </button>
+          <Btn style={{padding:"0.4rem 1rem",fontSize:"0.72rem"}} onClick={()=>setPage("manage")}>
+            {photos.length === 0 ? "+ Upload Photos" : `${photos.length} Photos ✓`}
+          </Btn>
+        </div>
+      </nav>
+
+      {page === "listing"
+        ? <ListingPage photos={photos} photosLoaded={photosLoaded} notify={notify}/>
+        : <ManagePage photos={photos} savePhotos={savePhotos} notify={notify} onDone={()=>setPage("listing")}/>
+      }
+
+      {notification && (
+        <div style={{position:"fixed",bottom:"2rem",right:"2rem",zIndex:500,background:notification.type==="error"?"rgba(200,126,126,0.12)":"rgba(200,169,110,0.1)",border:`1px solid ${notification.type==="error"?"rgba(200,126,126,0.4)":C.border}`,color:notification.type==="error"?"#C87E7E":C.gold,padding:"0.75rem 1.5rem",borderRadius:"2px",fontSize:"0.8rem",letterSpacing:"0.04em"}}>
+          {notification.msg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   LISTING PAGE
+═══════════════════════════════════════════ */
+function ListingPage({photos, photosLoaded, notify}) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [tab, setTab] = useState("specs");
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [aiMessages, setAiMessages] = useState([]);
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [thumbStart, setThumbStart] = useState(0);
+  const chatRef = useRef(null);
+  const fileRef = useRef(null);
+
+  useEffect(()=>{ setTimeout(()=>setMounted(true),100); },[]);
+  useEffect(()=>{ chatRef.current?.scrollIntoView({behavior:"smooth"}); },[aiMessages]);
+
+  const heroPhoto = photos.find(p=>p.hero) || photos[0];
+  const displayPhotos = photos.length > 0 ? photos : [];
+  const activePhoto = displayPhotos[activeIdx];
+  const THUMBS = 5;
+
+  async function sendAI() {
+    if (!aiQuery.trim() || aiLoading) return;
+    const q = aiQuery.trim(); setAiQuery(""); setAiLoading(true);
+    setAiMessages(p=>[...p,{role:"user",content:q}]);
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514", max_tokens:600,
+          system:`You are an aircraft advisor for Airsell answering questions about this specific listing: 1970 Piper PA-28-140C Cherokee, N5843U, serial 28-26674. Airframe 5,350.2 hrs total time, engine 1,230.02 hrs SMOH on Avco Lycoming O-320. Annual done June 25 2025, due June 2026. Avionics: Garmin GNS 430 Non-WAAS, Bendix/King KX 125, Garmin GTX 327, uAvionix tailBeacon ADS-B Out, TELEX PC 4 audio panel, new LED beacon/position/landing lights, red interior lighting. Asking $78,990. Punta Gorda, FL. Be honest, concise, under 130 words. On price: comparable PA-28-140s range $55k-$85k; this is well-equipped for the ask.`,
+          messages:[...aiMessages,{role:"user",content:q}],
+        }),
+      });
+      const data = await res.json();
+      setAiMessages(p=>[...p,{role:"assistant",content:data.content?.map(b=>b.text||"").join("")||"No response."}]);
+    } catch { setAiMessages(p=>[...p,{role:"assistant",content:"Connection error — please try again."}]); }
+    setAiLoading(false);
+  }
+
+  const s = {
+    hero: {position:"relative",height:"72vh",minHeight:"500px",background:"#0a0a09",cursor:"pointer",overflow:"hidden",marginTop:"58px"},
+    heroImg: {width:"100%",height:"100%",objectFit:"cover",filter:"brightness(0.82)",transition:"transform 0.7s ease"},
+    heroGrad: {position:"absolute",inset:0,background:"linear-gradient(to top, rgba(10,10,9,0.97) 0%, rgba(10,10,9,0.35) 45%, transparent 70%)"},
+    heroContent: {position:"absolute",bottom:"2.5rem",left:"2.5rem",right:"2.5rem",opacity:mounted?1:0,transform:mounted?"none":"translateY(18px)",transition:"all 0.9s ease 0.15s"},
+    heroNoPhoto: {display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:"1rem"},
+    thumbStrip: {display:"flex",gap:"2px",background:C.darker,padding:"3px 0",alignItems:"stretch"},
+    body: {maxWidth:"1200px",margin:"0 auto",padding:"0 2rem 5rem"},
+    grid: {display:"grid",gridTemplateColumns:"1fr 340px",gap:"2.5rem",marginTop:"2.5rem"},
+    tabRow: {display:"flex",borderBottom:`1px solid ${C.borderFaint}`,marginBottom:"2rem"},
+    tab: (a)=>({background:"none",border:"none",borderBottom:a?`2px solid ${C.gold}`:"2px solid transparent",color:a?C.gold:C.mid,padding:"0.7rem 1.25rem",fontSize:"0.78rem",fontWeight:a?600:400,letterSpacing:"0.08em",textTransform:"uppercase",cursor:"pointer",marginBottom:"-1px"}),
+    specsGrid: {display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.borderFaint,border:`1px solid ${C.borderFaint}`},
+    cell: {background:C.card,padding:"0.9rem 1.1rem"},
+    cellLabel: {fontSize:"0.62rem",color:C.dim,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"0.2rem"},
+    cellVal: {fontSize:"0.88rem",fontWeight:500,color:C.offwhite},
+    avGrid: {display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.6rem"},
+    avCard: {background:C.card,border:`1px solid ${C.borderFaint}`,padding:"0.875rem 1rem"},
+    owGrid: {display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border,border:`1px solid ${C.border}`},
+    owCell: {background:C.card,padding:"1.1rem"},
+    owVal: {fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.7rem",fontWeight:700,color:C.gold,lineHeight:1,margin:"0.25rem 0 0.15rem"},
+    sidebar: {position:"sticky",top:"78px",alignSelf:"flex-start"},
+    priceBox: {border:`1px solid ${C.border}`,background:C.card,padding:"1.5rem",marginBottom:"1px"},
+    aiScoreBox: {border:`1px solid ${C.border}`,background:C.card,padding:"1.1rem 1.5rem",marginBottom:"1px",display:"flex",alignItems:"center",gap:"1rem"},
+    ctaBox: {border:`1px solid ${C.border}`,background:C.card,padding:"1.25rem",display:"flex",flexDirection:"column",gap:"0.5rem",marginBottom:"1px"},
+    inspBox: {border:`1px solid ${C.border}`,background:C.card,padding:"1.25rem"},
+    inspRow: {display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"0.75rem",paddingBottom:"0.875rem",marginBottom:"0.875rem",borderBottom:`1px solid ${C.borderFaint}`},
+    chatArea: {background:C.card,border:`1px solid ${C.borderFaint}`,minHeight:"180px",maxHeight:"300px",overflowY:"auto",padding:"1rem",display:"flex",flexDirection:"column",gap:"0.6rem"},
+    msgU: {alignSelf:"flex-end",background:C.gold,color:C.darker,borderRadius:"2px",padding:"0.55rem 0.85rem",maxWidth:"85%",fontSize:"0.83rem",lineHeight:1.6},
+    msgA: {alignSelf:"flex-start",background:"rgba(255,255,255,0.04)",color:C.offwhite,border:`1px solid ${C.borderFaint}`,borderRadius:"2px",padding:"0.55rem 0.85rem",maxWidth:"90%",fontSize:"0.83rem",lineHeight:1.7},
+    galleryModal: {position:"fixed",inset:0,zIndex:400,background:"rgba(0,0,0,0.98)",display:"flex",flexDirection:"column"},
+    galTop: {display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0.875rem 1.5rem",borderBottom:`1px solid ${C.borderFaint}`,flexShrink:0},
+    galMain: {flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",position:"relative"},
+    galStrip: {display:"flex",gap:"3px",padding:"0.6rem 1rem",overflowX:"auto",borderTop:`1px solid ${C.borderFaint}`,flexShrink:0},
+    offerModal: {position:"fixed",inset:0,zIndex:400,background:"rgba(0,0,0,0.88)",backdropFilter:"blur(10px)",display:"flex",alignItems:"center",justifyContent:"center",padding:"2rem"},
+    offerBox: {background:"#111110",border:`1px solid ${C.border}`,padding:"2.25rem",width:"100%",maxWidth:"440px"},
+    inp: {width:"100%",background:"rgba(255,255,255,0.04)",border:`1px solid ${C.borderFaint}`,color:C.white,padding:"0.7rem 0.9rem",fontSize:"0.85rem",outline:"none",borderRadius:"2px",fontFamily:"inherit",boxSizing:"border-box",marginBottom:"0.6rem"},
+  };
+
+  return (
+    <>
+      {/* HERO — photos present */}
+      {photos.length > 0 && activePhoto ? (
+        <div style={s.hero} onClick={()=>setGalleryOpen(true)}>
+          <img src={activePhoto.src} alt={activePhoto.caption||"N5843U"} style={s.heroImg}
+            onMouseEnter={e=>e.currentTarget.style.transform="scale(1.025)"}
+            onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}/>
+          <div style={s.heroGrad}/>
+          <div style={{position:"absolute",top:"1rem",right:"1rem",background:"rgba(10,10,9,0.8)",border:`1px solid ${C.border}`,color:C.mid,padding:"3px 10px",fontSize:"0.68rem",letterSpacing:"0.08em",backdropFilter:"blur(8px)"}}>
+            {activeIdx+1} / {photos.length}
+          </div>
+          <button style={{position:"absolute",bottom:"1.75rem",right:"2rem",background:"rgba(10,10,9,0.8)",border:`1px solid ${C.border}`,color:C.white,padding:"0.45rem 1rem",fontSize:"0.72rem",letterSpacing:"0.06em",cursor:"pointer",backdropFilter:"blur(8px)"}}
+            onClick={e=>{e.stopPropagation();setGalleryOpen(true);}}>
+            ⊞ All {photos.length} Photos
+          </button>
+          {/* Listing title — only shown when photo exists */}
+          <div style={s.heroContent}>
+            <div style={{fontSize:"0.65rem",color:C.gold,letterSpacing:"0.18em",textTransform:"uppercase",marginBottom:"0.75rem",display:"flex",alignItems:"center",gap:"0.75rem"}}>
+              <span style={{width:4,height:4,borderRadius:"50%",background:C.gold,display:"inline-block"}}/>
+              Active Listing · Airsell · Punta Gorda, FL
+              <span style={{width:4,height:4,borderRadius:"50%",background:C.gold,display:"inline-block"}}/>
+              AI Score 91/100
+            </div>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2.5rem,6vw,5rem)",fontWeight:700,lineHeight:0.9,letterSpacing:"0.03em",marginBottom:"0.75rem"}}>
+              1970 PIPER PA-28-140C CHEROKEE
+            </div>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(1.8rem,4vw,3.2rem)",fontWeight:700,color:C.gold,letterSpacing:"0.02em",marginBottom:"1rem"}}>
+              $78,990
+            </div>
+            <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
+              {["Below Market","N5843U","5,350 TT · 1,230 SMOH","Annual Due Jun 2026","ADS-B Out","GNS 430"].map((t,i)=>(
+                <span key={t} style={{background:i===0?C.gold:"transparent",color:i===0?C.darker:C.offwhite,border:i===0?"none":`1px solid rgba(200,169,110,0.3)`,borderRadius:"2px",padding:"3px 10px",fontSize:"0.68rem",letterSpacing:"0.07em"}}>{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* NO PHOTO STATE — clean separate layout, no overlap */
+        <div style={{marginTop:"58px",background:"#0a0a09",borderBottom:`1px solid ${C.borderFaint}`}}>
+          {/* Listing header */}
+          <div style={{padding:"3.5rem 2.5rem 2rem",maxWidth:"1200px",margin:"0 auto"}}>
+            <div style={{fontSize:"0.65rem",color:C.gold,letterSpacing:"0.18em",textTransform:"uppercase",marginBottom:"1rem",display:"flex",alignItems:"center",gap:"0.75rem"}}>
+              <span style={{width:4,height:4,borderRadius:"50%",background:C.gold,display:"inline-block"}}/>
+              Active Listing · Airsell · Punta Gorda, FL
+              <span style={{width:4,height:4,borderRadius:"50%",background:C.gold,display:"inline-block"}}/>
+              AI Score 91/100
+            </div>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2.5rem,6vw,5rem)",fontWeight:700,lineHeight:0.9,letterSpacing:"0.03em",marginBottom:"0.75rem"}}>
+              1970 PIPER PA-28-140C CHEROKEE
+            </div>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(1.8rem,4vw,3rem)",fontWeight:700,color:C.gold,letterSpacing:"0.02em",marginBottom:"1.25rem"}}>
+              $78,990
+            </div>
+            <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginBottom:"2.5rem"}}>
+              {["Below Market","N5843U","5,350 TT · 1,230 SMOH","Annual Due Jun 2026","ADS-B Out","GNS 430"].map((t,i)=>(
+                <span key={t} style={{background:i===0?C.gold:"transparent",color:i===0?C.darker:C.offwhite,border:i===0?"none":`1px solid rgba(200,169,110,0.3)`,borderRadius:"2px",padding:"3px 10px",fontSize:"0.68rem",letterSpacing:"0.07em"}}>{t}</span>
+              ))}
+            </div>
+          </div>
+          {/* Upload prompt — clearly separated below the title */}
+          <div style={{borderTop:`1px solid ${C.borderFaint}`,padding:"2.5rem",maxWidth:"1200px",margin:"0 auto",display:"flex",alignItems:"center",gap:"2rem",flexWrap:"wrap"}}>
+            <div>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.2rem",fontWeight:700,letterSpacing:"0.04em",marginBottom:"0.3rem"}}>No Photos Uploaded Yet</div>
+              <div style={{fontSize:"0.82rem",color:C.mid}}>Go to Manage Photos to upload your Cherokee photo set.</div>
+            </div>
+            <Btn onClick={()=>document.getElementById("manage-upload-trigger")?.click()}>
+              + Upload Photos
+            </Btn>
+          </div>
+        </div>
+      )}
+
+      {/* THUMBNAIL STRIP */}
+      {photos.length > 0 && (
+        <div style={s.thumbStrip}>
+          {thumbStart > 0 && (
+            <button style={{width:34,background:"rgba(200,169,110,0.08)",border:`1px solid ${C.border}`,color:C.gold,cursor:"pointer",fontSize:"1rem",flexShrink:0}} onClick={()=>setThumbStart(Math.max(0,thumbStart-1))}>‹</button>
+          )}
+          {photos.slice(thumbStart, thumbStart+THUMBS).map((p,i)=>{
+            const idx = thumbStart+i;
+            return (
+              <img key={p.id} src={p.src} alt={p.caption||""} onClick={()=>setActiveIdx(idx)}
+                style={{width:100,height:64,objectFit:"cover",cursor:"pointer",flexShrink:0,outline:idx===activeIdx?`2px solid ${C.gold}`:"none",outlineOffset:"-2px",opacity:idx===activeIdx?1:0.45,transition:"opacity 0.2s"}}/>
+            );
+          })}
+          {thumbStart+THUMBS < photos.length && (
+            <button style={{width:34,background:"rgba(200,169,110,0.08)",border:`1px solid ${C.border}`,color:C.gold,cursor:"pointer",fontSize:"1rem",flexShrink:0}} onClick={()=>setThumbStart(Math.min(photos.length-THUMBS,thumbStart+1))}>›</button>
+          )}
+          <div style={{marginLeft:"auto",paddingRight:"1rem",fontSize:"0.7rem",color:C.dim,display:"flex",alignItems:"center"}}>
+            {activePhoto?.caption||""}
+          </div>
+        </div>
+      )}
+
+      {/* BODY */}
+      <div style={s.body}>
+        <div style={{fontSize:"0.68rem",color:C.dim,letterSpacing:"0.08em",margin:"1.5rem 0",display:"flex",gap:"0.5rem"}}>
+          <span>Airsell</span><span style={{color:C.dim}}>›</span><span>Trainers</span><span style={{color:C.dim}}>›</span><span>Piper</span><span style={{color:C.dim}}>›</span><span style={{color:C.offwhite}}>1970 PA-28-140C — N5843U</span>
+        </div>
+
+        <div style={s.grid}>
+          {/* LEFT */}
+          <div>
+            <div style={s.tabRow}>
+              {[["specs","Specs"],["avionics","Avionics"],["ownership","Ownership"],["description","Details"],["advisor","AI Advisor"]].map(([v,l])=>(
+                <button key={v} style={s.tab(tab===v)} onClick={()=>setTab(v)}>{l}</button>
+              ))}
+            </div>
+
+            {tab==="specs" && (
+              <div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.1rem",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:"1.25rem"}}>Aircraft Specifications</div>
+                <div style={s.specsGrid}>
+                  {SPECS.map(([l,v])=>(
+                    <div key={l} style={s.cell}><div style={s.cellLabel}>{l}</div><div style={s.cellVal}>{v}</div></div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tab==="avionics" && (
+              <div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.1rem",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:"1.25rem"}}>Avionics & Equipment</div>
+                <div style={s.avGrid}>
+                  {AVIONICS.map(av=>(
+                    <div key={av.name} style={s.avCard}>
+                      <div style={{fontWeight:600,fontSize:"0.87rem",marginBottom:"0.2rem"}}>{av.name}</div>
+                      <div style={{fontSize:"0.75rem",color:C.mid}}>{av.note}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{marginTop:"1.25rem",background:"rgba(200,169,110,0.04)",border:`1px solid ${C.border}`,padding:"1.1rem"}}>
+                  <div style={{fontSize:"0.75rem",color:C.gold,fontWeight:600,marginBottom:"0.4rem"}}>✓ FAA ADS-B Out Compliant</div>
+                  <div style={{fontSize:"0.82rem",color:C.mid,lineHeight:1.7}}>uAvionix tailBeacon installed — fly Class B, C, and E airspace without any additional upgrades.</div>
+                </div>
+              </div>
+            )}
+
+            {tab==="ownership" && (
+              <div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.1rem",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:"1.25rem"}}>Estimated Ownership Cost</div>
+                <div style={s.owGrid}>
+                  {OWNERSHIP.map(o=>(
+                    <div key={o.label} style={s.owCell}>
+                      <div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.12em",textTransform:"uppercase"}}>{o.label}</div>
+                      <div style={s.owVal}>{o.value}</div>
+                      <div style={{fontSize:"0.7rem",color:C.dim}}>{o.sub}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{marginTop:"1.1rem",fontSize:"0.75rem",color:C.dim,lineHeight:1.7,padding:"0.875rem",border:`1px solid ${C.borderFaint}`}}>
+                  * Estimates based on Florida hangar rates, hull/liability insurance, $6.50/gal avgas, $1,500 annual reserve. Ask the AI Advisor for a personalized breakdown.
+                </div>
+              </div>
+            )}
+
+            {tab==="description" && (
+              <div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.1rem",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:"1.25rem"}}>About This Aircraft</div>
+                {["The 1970 Piper Cherokee PA-28-140C is one of the most proven trainers in general aviation — and N5843U is a particularly clean example. With 5,350 hours on the airframe and 1,230 hours since major overhaul on the Avco Lycoming O-320, this aircraft has solid life ahead.",
+                  "The panel is practical and current: Garmin GNS 430 for navigation and primary comms, GTX 327 transponder paired with a uAvionix tailBeacon for full ADS-B Out compliance, and new LED lighting throughout — beacon, position, landing, and red interior for night operations.",
+                  "Annual completed June 25, 2025 — you're buying into nearly a full year of compliance. Clean logs, straight airframe, and professional photography that shows exactly what you're getting.",
+                  "Based at Punta Gorda, FL — year-round VFR weather, low humidity, minimal corrosion environment. This is a Florida aircraft, and it shows."].map((p,i)=>(
+                  <p key={i} style={{color:C.offwhite,lineHeight:1.85,fontSize:"0.9rem",marginBottom:"1rem"}}>{p}</p>
+                ))}
+                <div style={{display:"flex",flexWrap:"wrap",gap:"0.4rem",marginTop:"1rem"}}>
+                  {["VFR / Night Rated","ADS-B Compliant","GNS 430","Annual Due Jun 2026","Florida Based","Clean Logs","LED Equipped","Student-Ready"].map(t=>(
+                    <span key={t} style={{border:`1px solid ${C.borderFaint}`,borderRadius:"2px",padding:"2px 9px",fontSize:"0.68rem",color:C.dim,letterSpacing:"0.05em"}}>{t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tab==="advisor" && (
+              <div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.1rem",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:"0.5rem"}}>AI Advisor — N5843U</div>
+                <div style={{fontSize:"0.78rem",color:C.mid,marginBottom:"1rem"}}>Powered by Claude · Knows every spec of this aircraft</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"0.4rem",marginBottom:"1rem"}}>
+                  {["Is this price fair?","What are operating costs?","Is 1,230 SMOH okay?","GNS 430 — worth it?","Best for instrument training?"].map(q=>(
+                    <button key={q} style={{background:"transparent",border:`1px solid ${C.borderFaint}`,color:C.mid,borderRadius:"2px",padding:"0.3rem 0.8rem",fontSize:"0.73rem",cursor:"pointer",letterSpacing:"0.03em"}}
+                      onMouseEnter={e=>{e.currentTarget.style.borderColor=C.gold;e.currentTarget.style.color=C.gold;}}
+                      onMouseLeave={e=>{e.currentTarget.style.borderColor=C.borderFaint;e.currentTarget.style.color=C.mid;}}
+                      onClick={()=>setAiQuery(q)}>{q}</button>
+                  ))}
+                </div>
+                <div style={s.chatArea}>
+                  {aiMessages.length===0 && <div style={{color:C.dim,fontSize:"0.82rem",textAlign:"center",margin:"auto"}}>Ask anything about N5843U — pricing, specs, costs, or pre-buy advice.</div>}
+                  {aiMessages.map((m,i)=><div key={i} style={m.role==="user"?s.msgU:s.msgA}>{m.content}</div>)}
+                  {aiLoading && <div style={{color:C.dim,fontSize:"0.8rem",alignSelf:"flex-start"}}>● Analyzing…</div>}
+                  <div ref={chatRef}/>
+                </div>
+                <div style={{display:"flex",gap:"0.5rem",marginTop:"0.5rem"}}>
+                  <input style={{...s.inp,marginBottom:0,flex:1}} value={aiQuery} onChange={e=>setAiQuery(e.target.value)}
+                    onKeyDown={e=>e.key==="Enter"&&sendAI()}
+                    placeholder="e.g. Is this a good trainer for instrument rating?"/>
+                  <Btn onClick={sendAI} disabled={aiLoading}>{aiLoading?"…":"Ask"}</Btn>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SIDEBAR */}
+          <div style={s.sidebar}>
+            <div style={s.priceBox}>
+              <div style={{fontSize:"0.62rem",color:C.gold,letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:"0.4rem"}}>Asking Price</div>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"2.6rem",fontWeight:700,lineHeight:1}}>$78,990</div>
+              <div style={{fontSize:"0.72rem",color:C.mid,marginTop:"0.3rem"}}>Seller: Onyx Aviation LLC · No buyer fees</div>
+            </div>
+
+            <div style={s.aiScoreBox}>
+              <div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"2.2rem",fontWeight:700,color:C.gold,lineHeight:1}}>91</div>
+                <div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:"0.2rem"}}>AI Score</div>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{height:"3px",background:C.borderFaint,borderRadius:"2px",marginBottom:"0.3rem"}}>
+                  <div style={{height:"100%",width:"91%",background:C.gold,borderRadius:"2px"}}/>
+                </div>
+                <div style={{fontSize:"0.68rem",color:C.dim}}>8% below comparable PA-28-140s</div>
+              </div>
+            </div>
+
+            <div style={s.ctaBox}>
+              <Btn full onClick={()=>setOfferOpen(true)}>Make an Offer</Btn>
+              <Btn full variant="outline">Contact Seller</Btn>
+              <Btn full variant="goldOutline" onClick={()=>setTab("advisor")}>Ask AI Advisor</Btn>
+            </div>
+
+            <div style={s.inspBox}>
+              <div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"1rem"}}>Pre-Buy Inspection — Available</div>
+              {INSPECTORS.map((ins,i)=>(
+                <div key={ins.name} style={{...s.inspRow,...(i===INSPECTORS.length-1?{borderBottom:"none",paddingBottom:0,marginBottom:0}:{})}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.25rem"}}>
+                      <span style={{fontWeight:600,fontSize:"0.85rem"}}>{ins.name}</span>
+                      <span style={{background:C.gold,color:C.darker,fontSize:"0.58rem",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",padding:"2px 6px",borderRadius:"1px"}}>{ins.badge}</span>
+                    </div>
+                    <div style={{fontSize:"0.72rem",color:C.mid}}>{ins.cert} · {ins.location}</div>
+                    <div style={{fontSize:"0.68rem",color:C.dim,marginTop:"0.15rem"}}>★ {ins.rating} · Lead: {ins.lead}</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.3rem",fontWeight:700,color:C.gold}}>${ins.price}</div>
+                    <Btn style={{padding:"0.3rem 0.85rem",fontSize:"0.7rem",marginTop:"0.3rem"}}>Book</Btn>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* GALLERY MODAL */}
+      {galleryOpen && photos.length > 0 && (
+        <div style={s.galleryModal}>
+          <div style={s.galTop}>
+            <Logo width={110}/>
+            <span style={{fontSize:"0.78rem",color:C.mid,letterSpacing:"0.06em"}}>
+              {activePhoto?.caption||""} · {activeIdx+1}/{photos.length}
+            </span>
+            <button style={{background:"none",border:`1px solid ${C.borderFaint}`,color:C.mid,padding:"0.35rem 1rem",cursor:"pointer",fontSize:"0.78rem",borderRadius:"2px"}} onClick={()=>setGalleryOpen(false)}>✕ Close</button>
+          </div>
+          <div style={s.galMain}>
+            <img src={photos[activeIdx]?.src} alt="" style={{maxHeight:"100%",maxWidth:"100%",objectFit:"contain"}}/>
+            <button style={{position:"absolute",left:"1rem",background:"rgba(0,0,0,0.7)",border:`1px solid ${C.border}`,color:C.white,width:44,height:44,cursor:"pointer",fontSize:"1.2rem",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"2px"}} onClick={()=>setActiveIdx((activeIdx-1+photos.length)%photos.length)}>‹</button>
+            <button style={{position:"absolute",right:"1rem",background:"rgba(0,0,0,0.7)",border:`1px solid ${C.border}`,color:C.white,width:44,height:44,cursor:"pointer",fontSize:"1.2rem",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"2px"}} onClick={()=>setActiveIdx((activeIdx+1)%photos.length)}>›</button>
+          </div>
+          <div style={s.galStrip}>
+            {photos.map((p,i)=>(
+              <img key={p.id} src={p.src} alt="" style={{width:68,height:46,objectFit:"cover",cursor:"pointer",flexShrink:0,opacity:i===activeIdx?1:0.38,outline:i===activeIdx?`2px solid ${C.gold}`:"none",outlineOffset:"-2px"}} onClick={()=>setActiveIdx(i)}/>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* OFFER MODAL */}
+      {offerOpen && (
+        <div style={s.offerModal} onClick={e=>e.target===e.currentTarget&&setOfferOpen(false)}>
+          <div style={s.offerBox}>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.8rem",fontWeight:700,letterSpacing:"0.04em",marginBottom:"0.25rem"}}>MAKE AN OFFER</div>
+            <div style={{fontSize:"0.8rem",color:C.mid,marginBottom:"1.75rem"}}>1970 Piper PA-28-140C · N5843U · Listed at $78,990</div>
+            {[["Your Offer","$75,000","text"],["Full Name","First Last","text"],["Email","you@email.com","email"],["Phone (optional)","+1 (555) 000-0000","tel"]].map(([l,ph,t])=>(
+              <div key={l}><div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"0.3rem"}}>{l}</div><input style={s.inp} placeholder={ph} type={t}/></div>
+            ))}
+            <div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"0.3rem"}}>Message (optional)</div>
+            <textarea style={{...s.inp,height:"70px",resize:"vertical",marginBottom:"1.25rem"}} placeholder="Any conditions or questions..."/>
+            <div style={{display:"flex",gap:"0.6rem"}}>
+              <Btn full onClick={()=>setOfferOpen(false)}>Submit Offer</Btn>
+              <Btn variant="outline" onClick={()=>setOfferOpen(false)}>Cancel</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <footer style={{borderTop:`1px solid ${C.borderFaint}`,padding:"2rem",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"1rem"}}>
+        <Logo width={110} color={C.dim} textColor={C.dim}/>
+        <span style={{fontSize:"0.72rem",color:C.dim}}>© 2026 Airsell · Onyx Aviation LLC · Listing AS-2026-N5843U</span>
+      </footer>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MANAGE PAGE
+═══════════════════════════════════════════ */
+function ManagePage({photos, savePhotos, notify, onDone}) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [editCaption, setEditCaption] = useState(null);
+  const [captionDraft, setCaptionDraft] = useState("");
+  const [view, setView] = useState("grid");
+  const [dragId, setDragId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const fileRef = useRef(null);
+
+  function onDragStart(e, id) {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = "move";
+  }
+  function onDragEnter(id) { if (id !== dragId) setDragOverId(id); }
+  async function onDropCard(e, targetId) {
+    e.preventDefault();
+    if (!dragId || dragId === targetId) { setDragId(null); setDragOverId(null); return; }
+    const arr = [...photos];
+    const fromIdx = arr.findIndex(p => p.id === dragId);
+    const toIdx = arr.findIndex(p => p.id === targetId);
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    setDragId(null); setDragOverId(null);
+    await savePhotos(arr);
+    notify("Order saved.");
+  }
+  function onDragEnd() { setDragId(null); setDragOverId(null); }
+
+  async function processFiles(files) {
+    if (!files?.length) return;
+    setUploading(true); setProgress(0);
+    const newPhotos = [];
+    for (let i=0;i<files.length;i++) {
+      const f = files[i];
+      if (!f.type.startsWith("image/")) continue;
+      try {
+        const src = await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f);});
+        newPhotos.push({id:`p_${Date.now()}_${i}`,src,caption:f.name.replace(/\.[^/.]+$/,"").replace(/[_-]/g," "),filename:f.name,size:f.size,uploadedAt:new Date().toISOString(),hero:photos.length===0&&i===0,order:photos.length+i});
+        setProgress(Math.round(((i+1)/files.length)*100));
+      } catch {}
+    }
+    const updated = [...photos,...newPhotos];
+    await savePhotos(updated);
+    setUploading(false); setProgress(0);
+    notify(`${newPhotos.length} photo${newPhotos.length!==1?"s":""} uploaded.`);
+  }
+
+  async function deletePhoto(id) {
+    await savePhotos(photos.filter(p=>p.id!==id));
+    if (selected?.id===id) setSelected(null);
+    notify("Photo deleted.");
+  }
+
+  async function setHero(id) {
+    await savePhotos(photos.map(p=>({...p,hero:p.id===id})));
+    notify("Hero photo set.");
+  }
+
+  async function move(id, dir) {
+    const idx = photos.findIndex(p=>p.id===id);
+    if (idx===-1) return;
+    const nIdx = dir==="up"?idx-1:idx+1;
+    if (nIdx<0||nIdx>=photos.length) return;
+    const arr=[...photos];
+    [arr[idx],arr[nIdx]]=[arr[nIdx],arr[idx]];
+    await savePhotos(arr);
+  }
+
+  async function saveCaption(id) {
+    await savePhotos(photos.map(p=>p.id===id?{...p,caption:captionDraft}:p));
+    setEditCaption(null); notify("Caption saved.");
+  }
+
+  const fmt = b => b<1048576?(b/1024).toFixed(1)+"KB":(b/1048576).toFixed(1)+"MB";
+  const totalSize = photos.reduce((s,p)=>s+(p.size||0),0);
+
+  const s = {
+    body: {maxWidth:"1200px",margin:"0 auto",padding:"2rem 2rem 4rem"},
+    statsRow: {display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"1px",background:C.border,border:`1px solid ${C.border}`,marginBottom:"2rem"},
+    statCell: {background:C.card,padding:"1rem 1.25rem"},
+    drop: (over)=>({border:`2px dashed ${over?C.gold:"rgba(200,169,110,0.22)"}`,borderRadius:"3px",background:over?"rgba(200,169,110,0.05)":"rgba(255,255,255,0.02)",padding:"2.5rem 2rem",textAlign:"center",cursor:"pointer",transition:"all 0.2s",marginBottom:"1.5rem"}),
+    grid: {display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:"2px",background:C.borderFaint},
+    gCard: (h)=>({background:C.card,cursor:"pointer",position:"relative",overflow:"hidden",outline:h?`2px solid ${C.gold}`:"none",outlineOffset:h?"-2px":"0"}),
+    listRow: {display:"flex",alignItems:"center",gap:"1rem",padding:"0.7rem 1rem",border:`1px solid ${C.borderFaint}`,marginBottom:"2px",background:C.card,cursor:"pointer"},
+    lightbox: {position:"fixed",inset:0,zIndex:500,background:"rgba(0,0,0,0.98)",display:"flex",flexDirection:"column"},
+    lbTop: {display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0.75rem 1.5rem",borderBottom:`1px solid ${C.borderFaint}`,flexShrink:0},
+    lbMain: {flex:1,display:"flex",overflow:"hidden"},
+    lbImg: {flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"},
+    lbPanel: {width:"260px",borderLeft:`1px solid ${C.borderFaint}`,padding:"1.25rem",overflowY:"auto",background:"#0d0d0b"},
+    inp: {width:"100%",background:"rgba(255,255,255,0.05)",border:`1px solid ${C.border}`,color:C.white,padding:"0.55rem 0.75rem",fontSize:"0.83rem",outline:"none",borderRadius:"2px",fontFamily:"inherit",boxSizing:"border-box"},
+  };
+
+  return (
+    <div style={{...s.body,marginTop:"58px"}}>
+      {/* STATS */}
+      <div style={s.statsRow}>
+        {[["Photos",photos.length,"stored"],["Storage",fmt(totalSize),"used"],["Hero",photos.find(p=>p.hero)?"Set":"None","photo"],["Status",photos.length>0?"Ready":"Empty","listing"]].map(([l,v,sub])=>(
+          <div key={l} style={s.statCell}>
+            <div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"0.2rem"}}>{l}</div>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.7rem",fontWeight:700,lineHeight:1,color:C.white}}>{v}</div>
+            <div style={{fontSize:"0.68rem",color:C.dim,marginTop:"0.15rem"}}>{sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* DROP ZONE */}
+      <div id="manage-upload-trigger" style={s.drop(dragOver)}
+        onClick={()=>fileRef.current?.click()}
+        onDragOver={e=>{e.preventDefault();setDragOver(true);}}
+        onDragLeave={()=>setDragOver(false)}
+        onDrop={e=>{e.preventDefault();setDragOver(false);processFiles(Array.from(e.dataTransfer.files));}}>
+        <div style={{fontSize:"0.65rem",color:dragOver?C.gold:C.dim,letterSpacing:"0.18em",textTransform:"uppercase",marginBottom:"0.75rem"}}>⬆ Upload</div>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.5rem",fontWeight:700,color:dragOver?C.gold:C.offwhite,marginBottom:"0.25rem"}}>
+          {dragOver?"Drop to Upload":"Drag & Drop Aircraft Photos"}
+        </div>
+        <div style={{fontSize:"0.8rem",color:C.mid}}>or click to select · JPG, PNG, HEIC · Multiple files at once</div>
+        <input ref={fileRef} type="file" multiple accept="image/*" style={{display:"none"}} onChange={e=>processFiles(Array.from(e.target.files))}/>
+      </div>
+
+      {/* PROGRESS */}
+      {uploading && (
+        <div style={{background:"rgba(200,169,110,0.07)",border:`1px solid ${C.border}`,padding:"1rem 1.25rem",marginBottom:"1.25rem",display:"flex",alignItems:"center",gap:"1rem"}}>
+          <div style={{fontSize:"0.78rem",color:C.gold,flexShrink:0}}>Uploading…</div>
+          <div style={{flex:1,height:"3px",background:C.borderFaint,borderRadius:"2px",overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${progress}%`,background:C.gold,transition:"width 0.3s ease"}}/>
+          </div>
+          <div style={{fontSize:"0.78rem",color:C.mid,flexShrink:0}}>{progress}%</div>
+        </div>
+      )}
+
+      {/* TOOLBAR */}
+      {photos.length > 0 && (
+        <div style={{display:"flex",alignItems:"center",gap:"0.6rem",marginBottom:"1.25rem",flexWrap:"wrap"}}>
+          <span style={{fontSize:"0.75rem",color:C.mid}}>{photos.length} photos</span>
+          <Btn variant="ghost" style={{padding:"0.35rem 0.85rem",fontSize:"0.72rem",background:view==="grid"?"rgba(200,169,110,0.1)":"transparent",color:view==="grid"?C.gold:C.mid,border:view==="grid"?`1px solid ${C.border}`:`1px solid ${C.borderFaint}`}} onClick={()=>setView("grid")}>Grid</Btn>
+          <Btn variant="ghost" style={{padding:"0.35rem 0.85rem",fontSize:"0.72rem",background:view==="list"?"rgba(200,169,110,0.1)":"transparent",color:view==="list"?C.gold:C.mid,border:view==="list"?`1px solid ${C.border}`:`1px solid ${C.borderFaint}`}} onClick={()=>setView("list")}>List</Btn>
+          <div style={{flex:1}}/>
+          <Btn variant="ghost" style={{padding:"0.35rem 0.85rem",fontSize:"0.72rem"}} onClick={()=>fileRef.current?.click()}>+ Add More</Btn>
+          <Btn variant="danger" style={{padding:"0.35rem 0.85rem",fontSize:"0.72rem"}} onClick={async()=>{if(window.confirm("Delete all photos?")){{await savePhotos([]);notify("Cleared.");}}}}>Clear All</Btn>
+          <Btn onClick={onDone} style={{padding:"0.4rem 1.1rem",fontSize:"0.78rem"}}>← Back to Listing</Btn>
+        </div>
+      )}
+
+      {/* EMPTY */}
+      {photos.length===0&&!uploading&&(
+        <div style={{textAlign:"center",padding:"4rem 2rem",color:C.dim}}>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.5rem",fontWeight:700,color:C.offwhite,marginBottom:"0.5rem"}}>No Photos Yet</div>
+          <div style={{fontSize:"0.85rem"}}>Upload your Cherokee photos above to power the listing.</div>
+        </div>
+      )}
+
+      {/* GRID — drag to reorder */}
+      {photos.length>0&&view==="grid"&&(
+        <>
+          <div style={{fontSize:"0.72rem",color:C.dim,marginBottom:"0.75rem",letterSpacing:"0.04em"}}>
+            ↕ Drag photos to reorder · exterior first, interior and engine last
+          </div>
+          <div style={s.grid}>
+            {photos.map((p,idx)=>(
+              <div
+                key={p.id}
+                draggable
+                onDragStart={e=>onDragStart(e,p.id)}
+                onDragEnter={()=>onDragEnter(p.id)}
+                onDragOver={e=>e.preventDefault()}
+                onDrop={e=>onDropCard(e,p.id)}
+                onDragEnd={onDragEnd}
+                onClick={()=>setSelected(p)}
+                style={{
+                  ...s.gCard(p.hero),
+                  cursor:"grab",
+                  opacity: dragId===p.id ? 0.35 : 1,
+                  outline: dragOverId===p.id ? `2px solid ${C.gold}` : p.hero ? `2px solid ${C.gold}` : "none",
+                  outlineOffset: "-2px",
+                  transition:"opacity 0.15s",
+                }}
+              >
+                <img src={p.src} alt={p.caption||""} style={{width:"100%",height:145,objectFit:"cover",display:"block",pointerEvents:"none"}}/>
+                {p.hero&&<div style={{position:"absolute",top:6,left:6,background:C.gold,color:C.darker,fontSize:"0.58rem",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",padding:"2px 7px",borderRadius:"1px"}}>Hero</div>}
+                <div style={{position:"absolute",top:6,right:6,background:"rgba(10,10,9,0.75)",border:`1px solid ${C.border}`,color:C.dim,fontSize:"0.62rem",padding:"2px 7px",borderRadius:"1px",letterSpacing:"0.04em",pointerEvents:"none"}}>
+                  #{idx+1}
+                </div>
+                <div style={{padding:"0.5rem 0.7rem"}}>
+                  <div style={{fontSize:"0.76rem",color:C.offwhite,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.caption||"Untitled"}</div>
+                  <div style={{fontSize:"0.65rem",color:C.dim,marginTop:"0.1rem"}}>{fmt(p.size||0)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* LIST */}
+      {photos.length>0&&view==="list"&&(
+        <div>
+          <div style={{fontSize:"0.72rem",color:C.dim,marginBottom:"0.75rem",letterSpacing:"0.04em"}}>↕ Drag rows to reorder</div>
+          {photos.map((p,idx)=>(
+            <div
+              key={p.id}
+              draggable
+              onDragStart={e=>onDragStart(e,p.id)}
+              onDragEnter={()=>onDragEnter(p.id)}
+              onDragOver={e=>e.preventDefault()}
+              onDrop={e=>onDropCard(e,p.id)}
+              onDragEnd={onDragEnd}
+              onClick={()=>setSelected(p)}
+              style={{
+                ...s.listRow,
+                cursor:"grab",
+                opacity: dragId===p.id ? 0.35 : 1,
+                borderColor: dragOverId===p.id ? C.gold : "rgba(255,255,255,0.07)",
+                transition:"opacity 0.15s, border-color 0.15s",
+              }}
+            >
+              <span style={{fontSize:"0.75rem",color:C.dim,flexShrink:0,width:20,textAlign:"center"}}>⠿</span>
+              <img src={p.src} alt="" style={{width:80,height:52,objectFit:"cover",flexShrink:0,pointerEvents:"none"}}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:"0.87rem",fontWeight:500,color:C.offwhite,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.caption||"Untitled"}</div>
+                <div style={{fontSize:"0.7rem",color:C.dim,marginTop:"0.15rem"}}>{p.filename} · {fmt(p.size||0)}</div>
+              </div>
+              {p.hero&&<span style={{background:C.gold,color:C.darker,fontSize:"0.58rem",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",padding:"2px 7px",borderRadius:"1px",flexShrink:0}}>Hero</span>}
+              <span style={{fontSize:"0.7rem",color:C.dim,flexShrink:0}}>#{idx+1}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* LIGHTBOX */}
+      {selected&&(
+        <div style={s.lightbox}>
+          <div style={s.lbTop}>
+            <Logo width={100}/>
+            <span style={{fontSize:"0.75rem",color:C.mid}}>Photo {photos.findIndex(p=>p.id===selected.id)+1} of {photos.length}</span>
+            <button style={{background:"none",border:`1px solid ${C.borderFaint}`,color:C.mid,padding:"0.3rem 0.85rem",cursor:"pointer",fontSize:"0.75rem",borderRadius:"2px"}} onClick={()=>setSelected(null)}>✕ Close</button>
+          </div>
+          <div style={s.lbMain}>
+            <div style={s.lbImg}>
+              <img src={selected.src} alt="" style={{maxHeight:"100%",maxWidth:"100%",objectFit:"contain"}}/>
+            </div>
+            <div style={s.lbPanel}>
+              <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:"1.1rem",fontWeight:700,letterSpacing:"0.04em",marginBottom:"1.25rem"}}>Photo Details</div>
+              <div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.3rem"}}>Caption</div>
+              {editCaption===selected.id?(
+                <div>
+                  <input style={s.inp} value={captionDraft} onChange={e=>setCaptionDraft(e.target.value)} onKeyDown={e=>e.key==="Enter"&&saveCaption(selected.id)} autoFocus/>
+                  <div style={{display:"flex",gap:"0.4rem",marginTop:"0.4rem"}}>
+                    <Btn style={{padding:"0.3rem 0.85rem",fontSize:"0.72rem"}} onClick={()=>saveCaption(selected.id)}>Save</Btn>
+                    <Btn variant="ghost" style={{padding:"0.3rem 0.75rem",fontSize:"0.72rem"}} onClick={()=>setEditCaption(null)}>Cancel</Btn>
+                  </div>
+                </div>
+              ):(
+                <div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"0.75rem"}}>
+                  <span style={{fontSize:"0.85rem",color:C.offwhite,flex:1}}>{selected.caption||"Untitled"}</span>
+                  <button style={{background:"transparent",border:`1px solid ${C.borderFaint}`,color:C.mid,padding:"2px 7px",fontSize:"0.68rem",cursor:"pointer",borderRadius:"1px"}} onClick={()=>{setEditCaption(selected.id);setCaptionDraft(selected.caption||"");}}>Edit</button>
+                </div>
+              )}
+              {[["File",selected.filename],["Size",fmt(selected.size||0)],["Position",`#${photos.findIndex(p=>p.id===selected.id)+1} of ${photos.length}`]].map(([l,v])=>(
+                <div key={l} style={{marginBottom:"0.6rem"}}>
+                  <div style={{fontSize:"0.62rem",color:C.dim,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.15rem"}}>{l}</div>
+                  <div style={{fontSize:"0.83rem",color:C.offwhite}}>{v}</div>
+                </div>
+              ))}
+              <div style={{marginTop:"1.5rem",display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+                {!selected.hero&&<Btn full onClick={()=>{setHero(selected.id);setSelected({...selected,hero:true});}}>★ Set as Hero</Btn>}
+                {selected.hero&&<div style={{textAlign:"center",fontSize:"0.75rem",color:C.gold,padding:"0.5rem",border:`1px solid ${C.border}`}}>★ Current Hero Photo</div>}
+                <Btn full variant="ghost" onClick={()=>move(selected.id,"up")}>↑ Move Up</Btn>
+                <Btn full variant="ghost" onClick={()=>move(selected.id,"down")}>↓ Move Down</Btn>
+                <Btn full variant="danger" onClick={()=>{deletePhoto(selected.id);setSelected(null);}}>✕ Delete</Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+  </script>
+</body>
+</html>
