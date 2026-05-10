@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Airsell — General Aviation Marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0A0A09;color:#F0EDE8;font-family:'Barlow','Helvetica Neue',sans-serif;min-height:100vh}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,9,0.97);border-bottom:1px solid rgba(200,169,110,0.14);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px}
+    .logo{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;letter-spacing:0.15em;color:#fff}
+    .logo span{color:#C8A96E}
+    .nav-cta{background:#C8A96E;color:#0A0A09;border:none;padding:0.5rem 1.25rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px}
+    .hero{margin-top:60px;background:#0a0a09;min-height:75vh;display:flex;flex-direction:column;justify-content:flex-end;padding:3rem 2.5rem;position:relative;overflow:hidden}
+    .hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,0.04) 0%,transparent 60%)}
+    .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,169,110,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,169,110,0.04) 1px,transparent 1px);background-size:80px 80px}
+    .hero-plane{position:absolute;right:5vw;top:50%;transform:translateY(-50%);font-size:28vw;opacity:0.03;line-height:1}
+    .eyebrow{font-size:0.65rem;color:#C8A96E;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem}
+    .dot{width:4px;height:4px;border-radius:50%;background:#C8A96E;display:inline-block}
+    .hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(3rem,7vw,6rem);font-weight:700;line-height:0.9;letter-spacing:0.03em;margin-bottom:0.75rem}
+    .hero-price{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:700;color:#C8A96E;margin-bottom:1.25rem}
+    .pills{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0}
+    .pill{border:1px solid rgba(200,169,110,0.3);border-radius:2px;padding:3px 10px;font-size:0.68rem;color:#C4BFB8;letter-spacing:0.07em}
+    .pill-gold{background:#C8A96E;color:#0A0A09;border:none;border-radius:2px;padding:3px 10px;font-size:0.68rem;font-weight:700;letter-spacing:0.07em}
+    .body{max-width:1200px;margin:0 auto;padding:2rem 2rem 5rem}
+    .breadcrumb{font-size:0.68rem;color:#55554E;letter-spacing:0.08em;margin-bottom:2rem;display:flex;gap:0.5rem}
+    .layout{display:grid;grid-template-columns:1fr 340px;gap:2.5rem;margin-top:0}
+    .tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:2rem}
+    .tab{background:none;border:none;border-bottom:2px solid transparent;color:#88887F;padding:0.7rem 1.25rem;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;margin-bottom:-1px;font-family:'Barlow',sans-serif}
+    .tab.active{color:#C8A96E;border-bottom:2px solid #C8A96E}
+    .tab-content{display:none}.tab-content.active{display:block}
+    .specs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.07)}
+    .spec-cell{background:#131311;padding:0.9rem 1.1rem}
+    .spec-label{font-size:0.62rem;color:#55554E;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.2rem}
+    .spec-val{font-size:0.88rem;font-weight:500;color:#C4BFB8}
+    .av-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem}
+    .av-card{background:#131311;border:1px solid rgba(255,255,255,0.07);padding:0.875rem 1rem;border-radius:2px}
+    .av-name{font-weight:600;font-size:0.87rem;margin-bottom:0.2rem}
+    .av-note{font-size:0.75rem;color:#88887F}
+    .ow-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(200,169,110,0.14);border:1px solid rgba(200,169,110,0.14)}
+    .ow-cell{background:#131311;padding:1.1rem}
+    .ow-label{font-size:0.62rem;color:#55554E;letter-spacing:0.12em;text-transform:uppercase}
+    .ow-val{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;font-weight:700;color:#C8A96E;line-height:1;margin:0.25rem 0 0.15rem}
+    .ow-sub{font-size:0.7rem;color:#55554E}
+    .desc p{color:#C4BFB8;line-height:1.85;font-size:0.9rem;margin-bottom:1rem}
+    .tag-row{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:1rem}
+    .tag{border:1px solid rgba(255,255,255,0.07);border-radius:2px;padding:2px 9px;font-size:0.68rem;color:#55554E;letter-spacing:0.05em}
+    .sidebar{position:sticky;top:80px;align-self:flex-start}
+    .price-box{border:1px solid rgba(200,169,110,0.14);background:#131311;padding:1.5rem;margin-bottom:1px}
+    .price-label{font-size:0.62rem;color:#C8A96E;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.4rem}
+    .price-num{font-family:'Barlow Condensed',sans-serif;font-size:2.6rem;font-weight:700;line-height:1}
+    .price-sub{font-size:0.72rem;color:#88887F;margin-top:0.3rem}
+    .score-box{border:1px solid rgba(200,169,110,0.14);background:#131311;padding:1.1rem 1.5rem;margin-bottom:1px;display:flex;align-items:center;gap:1rem}
+    .score-num{font-family:'Barlow Condensed',sans-serif;font-size:2.2rem;font-weight:700;color:#C8A96E;line-height:1}
+    .score-label{font-size:0.62rem;color:#55554E;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem}
+    .score-bar-wrap{flex:1}
+    .score-bar-bg{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;margin-bottom:0.3rem}
+    .score-bar-fill{height:100%;width:91%;background:#C8A96E;border-radius:2px}
+    .score-bar-sub{font-size:0.68rem;color:#55554E}
+    .cta-box{border:1px solid rgba(200,169,110,0.14);background:#131311;padding:1.25rem;display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1px}
+    .btn-gold{background:#C8A96E;color:#0A0A09;border:none;border-radius:2px;padding:0.75rem;font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;width:100%}
+    .btn-outline{background:transparent;color:#F0EDE8;border:1px solid rgba(255,255,255,0.15);border-radius:2px;padding:0.75rem;font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;width:100%}
+    .btn-gold-outline{background:transparent;color:#C8A96E;border:1px solid rgba(200,169,110,0.3);border-radius:2px;padding:0.75rem;font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;width:100%}
+    .insp-box{border:1px solid rgba(200,169,110,0.14);background:#131311;padding:1.25rem}
+    .insp-label{font-size:0.62rem;color:#55554E;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1rem}
+    .insp-row{display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;padding-bottom:0.875rem;margin-bottom:0.875rem;border-bottom:1px solid rgba(255,255,255,0.07)}
+    .insp-name{font-weight:600;font-size:0.85rem}
+    .insp-badge{background:#C8A96E;color:#0A0A09;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 6px;border-radius:1px;margin-left:0.4rem}
+    .insp-meta{font-size:0.72rem;color:#88887F;margin-top:0.25rem}
+    .insp-price{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;color:#C8A96E;text-align:right}
+    .insp-lead{font-size:0.7rem;color:#55554E;text-align:right}
+    .insp-btn{background:#C8A96E;color:#0A0A09;border:none;border-radius:2px;padding:0.3rem 0.85rem;font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;margin-top:0.4rem;display:block}
+    .sec-title{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.25rem}
+    .adsb-note{margin-top:1.25rem;background:rgba(200,169,110,0.04);border:1px solid rgba(200,169,110,0.14);padding:1.1rem}
+    .adsb-title{font-size:0.75rem;color:#C8A96E;font-weight:600;margin-bottom:0.4rem}
+    .adsb-text{font-size:0.82rem;color:#88887F;line-height:1.7}
+    .modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:2rem}
+    .modal.open{display:flex}
+    .modal-box{background:#111110;border:1px solid rgba(200,169,110,0.14);padding:2.25rem;width:100%;max-width:440px}
+    .modal-title{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:0.04em;margin-bottom:0.25rem}
+    .modal-sub{font-size:0.8rem;color:#88887F;margin-bottom:1.75rem}
+    .form-label{font-size:0.62rem;color:#55554E;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.3rem;display:block}
+    .form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:#F0EDE8;padding:0.7rem 0.9rem;font-size:0.85rem;outline:none;border-radius:2px;font-family:'Barlow',sans-serif;margin-bottom:0.75rem}
+    .form-row{display:flex;gap:0.6rem;margin-top:0.5rem}
+    .footer{border-top:1px solid rgba(255,255,255,0.07);padding:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .footer-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;letter-spacing:0.15em;color:#55554E}
+    .footer-logo span{color:#3a3a38}
+    .footer-text{font-size:0.72rem;color:#55554E}
+    @media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{position:relative;top:0}}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><span>AIR</span>SELL</div>
+  <button class="nav-cta">List Your Aircraft</button>
+</nav>
+
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-plane">✈</div>
+  <div style="position:relative;z-index:1">
+    <div class="eyebrow">
+      <span class="dot"></span>
+      Active Listing · Airsell · Punta Gorda, FL
+      <span class="dot"></span>
+      AI Score 91/100
+    </div>
+    <h1 class="hero-title">1970 PIPER PA-28-140C CHEROKEE</h1>
+    <div class="hero-price">$78,990</div>
+    <div class="pills">
+      <span class="pill-gold">Below Market</span>
+      <span class="pill">N5843U</span>
+      <span class="pill">5,350 TT · 1,230 SMOH</span>
+      <span class="pill">Annual Due Jun 2026</span>
+      <span class="pill">ADS-B Out</span>
+      <span class="pill">GNS 430</span>
+    </div>
+  </div>
+</div>
+
+<div class="body">
+  <div class="breadcrumb">
+    <span>Airsell</span><span>›</span><span>Trainers</span><span>›</span><span>Piper</span><span>›</span><span style="color:#C4BFB8">1970 PA-28-140C — N5843U</span>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('specs',this)">Specs</button>
+        <button class="tab" onclick="showTab('avionics',this)">Avionics</button>
+        <button class="tab" onclick="showTab('ownership',this)">Ownership</button>
+        <button class="tab" onclick="showTab('description',this)">Details</button>
+      </div>
+
+      <div id="specs" class="tab-content active">
+        <div class="sec-title">Aircraft Specifications</div>
+        <div class="specs-grid">
+          <div class="spec-cell"><div class="spec-label">Registration</div><div class="spec-val">N5843U</div></div>
+          <div class="spec-cell"><div class="spec-label">Serial Number</div><div class="spec-val">28-26674</div></div>
+          <div class="spec-cell"><div class="spec-label">Year</div><div class="spec-val">1970</div></div>
+          <div class="spec-cell"><div class="spec-label">Make / Model</div><div class="spec-val">Piper PA-28-140C Cherokee</div></div>
+          <div class="spec-cell"><div class="spec-label">Total Time Airframe</div><div class="spec-val">5,350.2 hrs</div></div>
+          <div class="spec-cell"><div class="spec-label">Engine SMOH</div><div class="spec-val">1,230.02 hrs</div></div>
+          <div class="spec-cell"><div class="spec-label">Engine</div><div class="spec-val">Avco Lycoming O-320</div></div>
+          <div class="spec-cell"><div class="spec-label">Annual Completed</div><div class="spec-val">June 25, 2025</div></div>
+          <div class="spec-cell"><div class="spec-label">Annual Due</div><div class="spec-val">June 30, 2026</div></div>
+          <div class="spec-cell"><div class="spec-label">Paint</div><div class="spec-val">White / Maroon</div></div>
+          <div class="spec-cell"><div class="spec-label">Seats</div><div class="spec-val">4</div></div>
+          <div class="spec-cell"><div class="spec-label">Location</div><div class="spec-val">Punta Gorda, FL</div></div>
+        </div>
+      </div>
+
+      <div id="avionics" class="tab-content">
+        <div class="sec-title">Avionics & Equipment</div>
+        <div class="av-grid">
+          <div class="av-card"><div class="av-name">Garmin GNS 430</div><div class="av-note">COM 1 / GPS — Non-WAAS</div></div>
+          <div class="av-card"><div class="av-name">Bendix/King KX 125</div><div class="av-note">COM 2</div></div>
+          <div class="av-card"><div class="av-name">Garmin GTX 327</div><div class="av-note">Transponder</div></div>
+          <div class="av-card"><div class="av-name">uAvionix tailBeacon</div><div class="av-note">ADS-B Out — FAA Compliant</div></div>
+          <div class="av-card"><div class="av-name">TELEX PC 4</div><div class="av-note">Audio Panel</div></div>
+          <div class="av-card"><div class="av-name">LED Beacon</div><div class="av-note">New Installation</div></div>
+          <div class="av-card"><div class="av-name">LED Position Lights</div><div class="av-note">New Installation</div></div>
+          <div class="av-card"><div class="av-name">LED Landing Light</div><div class="av-note">New Installation</div></div>
+          <div class="av-card"><div class="av-name">Red Interior Lighting</div><div class="av-note">Night Vision Friendly</div></div>
+        </div>
+        <div class="adsb-note">
+          <div class="adsb-title">✓ FAA ADS-B Out Compliant</div>
+          <div class="adsb-text">uAvionix tailBeacon installed — fly Class B, C, and E airspace without any additional upgrades required.</div>
+        </div>
+      </div>
+
+      <div id="ownership" class="tab-content">
+        <div class="sec-title">Estimated Ownership Cost</div>
+        <div class="ow-grid">
+          <div class="ow-cell"><div class="ow-label">Est. Monthly Fixed</div><div class="ow-val">$680/mo</div><div class="ow-sub">hangar + insurance + annual reserve</div></div>
+          <div class="ow-cell"><div class="ow-label">Est. Wet Rate</div><div class="ow-val">$85/hr</div><div class="ow-sub">fuel + oil at current prices</div></div>
+          <div class="ow-cell"><div class="ow-label">vs. Rental Savings</div><div class="ow-val">~$55/hr</div><div class="ow-sub">vs. $140/hr Cherokee rental avg.</div></div>
+          <div class="ow-cell"><div class="ow-label">Break-Even</div><div class="ow-val">~75 hrs/yr</div><div class="ow-sub">ownership cheaper beyond this point</div></div>
+        </div>
+        <div style="margin-top:1.1rem;font-size:0.75rem;color:#55554E;line-height:1.7;padding:0.875rem;border:1px solid rgba(255,255,255,0.07)">
+          * Estimates based on Florida hangar rates, hull/liability insurance, $6.50/gal avgas, $1,500 annual reserve.
+        </div>
+      </div>
+
+      <div id="description" class="tab-content desc">
+        <div class="sec-title">About This Aircraft</div>
+        <p>The 1970 Piper Cherokee PA-28-140C is one of the most proven trainers in general aviation — and N5843U is a particularly clean example. With 5,350 hours on the airframe and 1,230 hours since major overhaul on the Avco Lycoming O-320, this aircraft has solid life ahead.</p>
+        <p>The panel is practical and current: Garmin GNS 430 for navigation and primary comms, GTX 327 transponder paired with a uAvionix tailBeacon for full ADS-B Out compliance, and new LED lighting throughout — beacon, position, landing, and red interior for night operations.</p>
+        <p>Annual completed June 25, 2025 — you're buying into nearly a full year of compliance. Clean logs, straight airframe, professional photography that shows exactly what you're getting.</p>
+        <p>Based at Punta Gorda, FL — year-round VFR weather, low humidity, minimal corrosion environment. This is a Florida aircraft, and it shows.</p>
+        <div class="tag-row">
+          <span class="tag">VFR / Night Rated</span><span class="tag">ADS-B Compliant</span><span class="tag">GNS 430</span><span class="tag">Annual Due Jun 2026</span><span class="tag">Punta Gorda, FL</span><span class="tag">Clean Logs</span><span class="tag">LED Equipped</span><span class="tag">Student-Ready</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="price-box">
+        <div class="price-label">Asking Price</div>
+        <div class="price-num">$78,990</div>
+        <div class="price-sub">Seller: Onyx Aviation LLC · No buyer fees</div>
+      </div>
+      <div class="score-box">
+        <div>
+          <div class="score-num">91</div>
+          <div class="score-label">AI Score</div>
+        </div>
+        <div class="score-bar-wrap">
+          <div class="score-bar-bg"><div class="score-bar-fill"></div></div>
+          <div class="score-bar-sub">8% below comparable PA-28-140s</div>
+        </div>
+      </div>
+      <div class="cta-box">
+        <button class="btn-gold" onclick="document.getElementById('offerModal').classList.add('open')">Make an Offer</button>
+        <button class="btn-outline">Contact Seller</button>
+        <button class="btn-gold-outline">AI Appraisal Report</button>
+      </div>
+      <div class="insp-box">
+        <div class="insp-label">Pre-Buy Inspection — Available</div>
+        <div class="insp-row">
+          <div>
+            <div class="insp-name">James Wu <span class="insp-badge">Top Rated</span></div>
+            <div class="insp-meta">A&P / IA · KPGD — Punta Gorda, FL</div>
+            <div class="insp-meta">★ 5.0 · Lead: 24–48 hrs</div>
+          </div>
+          <div>
+            <div class="insp-price">$925</div>
+            <div class="insp-lead">Lead: 24–48 hrs</div>
+            <button class="insp-btn">Book</button>
+          </div>
+        </div>
+        <div class="insp-row" style="border-bottom:none;padding-bottom:0;margin-bottom:0">
+          <div>
+            <div class="insp-name">Patricia Osei <span class="insp-badge">Verified</span></div>
+            <div class="insp-meta">A&P / IA · KORL — Orlando, FL</div>
+            <div class="insp-meta">★ 4.7 · Lead: 48–72 hrs</div>
+          </div>
+          <div>
+            <div class="insp-price">$875</div>
+            <div class="insp-lead">Lead: 48–72 hrs</div>
+            <button class="insp-btn">Book</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="offerModal" class="modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div class="modal-title">MAKE AN OFFER</div>
+    <div class="modal-sub">1970 Piper PA-28-140C · N5843U · Listed at $78,990</div>
+    <label class="form-label">Your Offer</label>
+    <input class="form-input" placeholder="$75,000" type="text"/>
+    <label class="form-label">Full Name</label>
+    <input class="form-input" placeholder="First Last" type="text"/>
+    <label class="form-label">Email</label>
+    <input class="form-input" placeholder="you@email.com" type="email"/>
+    <label class="form-label">Phone (optional)</label>
+    <input class="form-input" placeholder="+1 (555) 000-0000" type="tel"/>
+    <div class="form-row">
+      <button class="btn-gold" style="flex:1">Submit Offer</button>
+      <button class="btn-outline" style="width:auto;padding:0.75rem 1.25rem" onclick="document.getElementById('offerModal').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo"><span>AIR</span>SELL</div>
+  <span class="footer-text">© 2026 Airsell · Onyx Aviation LLC · Listing AS-2026-N5843U</span>
+</footer>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
